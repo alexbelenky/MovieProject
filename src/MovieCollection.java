@@ -19,7 +19,7 @@ public class MovieCollection {
     private void setMovies() {
         try {
             Scanner input = new Scanner(new File("src\\movies_data.csv"));
-            for (int i = 0; i <= 4999; i++) {
+            for (int i = 0; i <= 4999; i++) { //manually scaled for the specific data set
                 String line = input.nextLine();
                 if (!line.equals("title, cast, director, overview, runtime, userRating")) {
                     String[] split = line.split(","); //cast keeps the |
@@ -35,8 +35,14 @@ public class MovieCollection {
     private void setActors() {
         for (Movie movie : movies) {
             String[] actors = movie.getCast().split(",");
-            this.actors.addAll(Arrays.asList(actors));
+            for (String actor : actors) {
+                actor = actor.trim(); // Trim leading and trailing spaces
+                if (!this.actors.contains(actor)) {
+                    this.actors.add(actor);
+                }
+            }
         }
+        sortCast();
     }
 
     private void welcome() {
@@ -78,7 +84,7 @@ public class MovieCollection {
         for (int i = 0; i < matches.size(); i++) {
             System.out.printf("%d. %s\n", i + 1, matches.get(i).getTitle());
         }
-        if (matches.size() != 0) {
+        if (!matches.isEmpty()) {
             try {
                 int choice = Integer.parseInt(askQuestion("\nWhich movie would you like to know more about?\nNumber: "));
                 System.out.println(matches.get(choice - 1));
@@ -101,14 +107,36 @@ public class MovieCollection {
             }
         }
 
-        if (matches.size() != 0) {
+        if (!matches.isEmpty()) {
             for (int i = 0; i < matches.size(); i++) {
                 System.out.printf("%d. %s\n", i + 1, matches.get(i));
             }
+            searchActorMovies(matches);
         } else {
             System.out.println("Actor not found!");
         }
         askQuestion("Press enter to continue");
+    }
+
+    private void searchActorMovies(ArrayList <String> searchedActors) {
+        int number = Integer.parseInt(askQuestion("Which would you like to see all movies for?\nEnter a number: "));
+        try {
+            String actor = searchedActors.get(number - 1);
+            ArrayList<Movie> actorMovies = new ArrayList<>();
+            for (Movie movie : movies) {
+                if (movie.getCast().contains(actor)) {
+                    actorMovies.add(movie);
+                }
+            }
+            for (int i = 0; i < actorMovies.size(); i++) {
+                System.out.printf("%d. %s\n", i + 1, actorMovies.get(i).getTitle());
+            }
+            int numberMovie = Integer.parseInt(askQuestion("Which movie would you like to learn more about?\nEnter a number: "));
+            System.out.println("\n" + actorMovies.get(numberMovie - 1));
+        } catch(Exception e) {
+            System.out.println("Actor not found!");
+        }
+
     }
 
     //insertion sort
@@ -120,6 +148,24 @@ public class MovieCollection {
             checkWord = i;
             while (movies.get(checkWord).getTitle().compareTo(movies.get(beforeWord).getTitle()) < 0) {
                 movies.set(beforeWord, movies.set(checkWord, movies.get(beforeWord)));
+                beforeWord--;
+                checkWord--;
+                if (beforeWord == -1) {
+                    break;
+                }
+            }
+        }
+    }
+
+    //insertion sort
+    private void sortCast() {
+        int beforeWord;
+        int checkWord;
+        for (int i = 1; i < actors.size(); i++) {
+            beforeWord = i - 1;
+            checkWord = i;
+            while (actors.get(checkWord).compareTo(actors.get(beforeWord)) < 0) {
+                actors.set(beforeWord, actors.set(checkWord, actors.get(beforeWord)));
                 beforeWord--;
                 checkWord--;
                 if (beforeWord == -1) {
